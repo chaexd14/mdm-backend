@@ -24,6 +24,15 @@ class ReliableDeliveryTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "legacy lock commands and URL payloads are normalized for renamed MDM agents" do
+    item = command(command_type: 'lock_kiosk')
+    assert_equal 'lock_device', item.api_json['type']
+    item = command(command_type: 'unlock_kiosk')
+    assert_equal 'unlock_device', item.api_json['type']
+    item = command(command_type: 'set_url', payload: { kioskUrl: 'https://example.com/legacy' })
+    assert_equal 'https://example.com/legacy', item.api_json.dig('payload', 'targetUrl')
+  end
+
   test "expired commands are not delivered" do
     item = command(expires_at: 1.minute.ago)
     get "/api/devices/RELIABLE-001/commands"

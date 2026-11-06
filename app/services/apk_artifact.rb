@@ -3,7 +3,7 @@ require 'digest'
 require 'fileutils'
 class ApkArtifact
   MAX_BYTES = 300 * 1024 * 1024
-  PACKAGE = 'com.saikotech.kiosk'
+  PACKAGE = 'com.saikotech.mdm'
   def self.root
     Pathname.new(ENV.fetch('MDM_RELEASE_STORAGE_ROOT', Rails.root.join('storage', 'private_releases').to_s)).expand_path
   end

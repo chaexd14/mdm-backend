@@ -31,8 +31,13 @@ class DeviceCommand < ApplicationRecord
   end
 
   def api_json
-    { id: id, deviceId: device.device_id, kioskId: device_id.to_s, type: command_type,
-      payload: payload, status: status, createdAt: created_at, executedAt: executed_at,
+    wire_type = { 'lock_kiosk' => 'lock_device', 'unlock_kiosk' => 'unlock_device' }.fetch(command_type, command_type)
+    wire_payload = payload.is_a?(Hash) ? payload.dup : payload
+    if wire_payload.is_a?(Hash) && wire_payload['targetUrl'].blank? && wire_payload['kioskUrl'].present?
+      wire_payload['targetUrl'] = wire_payload['kioskUrl']
+    end
+    { id: id, deviceId: device.device_id, kioskId: device_id.to_s, type: wire_type,
+      payload: wire_payload, status: status, createdAt: created_at, executedAt: executed_at,
       expiresAt: expires_at, receivedAt: received_at, deliveryAttempts: delivery_attempts, error: error }.as_json
   end
 end

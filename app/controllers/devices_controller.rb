@@ -109,7 +109,7 @@ class DevicesController < ApplicationController
       device.update!(url: value.strip, config_version: device.config_version + 1)
       device.device_commands.create!(command_type: "set_url", payload: { targetUrl: device.url, url: device.url, kioskUrl: device.url, configVersion: device.config_version })
     end
-    success(deviceId: device.device_id, targetUrl: device.url, kioskUrl: device.url, url: device.url)
+    success(deviceId: device.device_id, targetUrl: device.url, kioskUrl: device.url, url: device.url, configVersion: device.config_version)
   end
 
   private

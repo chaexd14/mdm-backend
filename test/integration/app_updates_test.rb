@@ -53,7 +53,7 @@ class AppUpdatesTest < ActionDispatch::IntegrationTest
     File.binwrite(apk, "PK\x03\x04")
     %w[minSdkVersion sdkVersion].each do |field|
       signing = "Signer #1 certificate SHA-256 digest: #{'a' * 64}"
-      badging = "package: name='com.saikotech.kiosk' versionCode='42' versionName='1.4.2'\n#{field}:'24'\nnative-code: 'arm64-v8a'\n"
+      badging = "package: name='com.saikotech.mdm' versionCode='42' versionName='1.4.2'\n#{field}:'24'\nnative-code: 'arm64-v8a'\n"
       ApkArtifact.stub(:tool, ->(name) { name }) do
         ApkArtifact.stub(:run, ->(*args) { args.first == 'apksigner' ? signing : badging }) do
           metadata = ApkArtifact.inspect_apk(apk)

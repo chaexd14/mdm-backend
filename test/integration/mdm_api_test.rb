@@ -26,6 +26,7 @@ class MdmApiTest < ActionDispatch::IntegrationTest
     device = enroll
     patch "/api/devices/TEST-001/url", params: { targetUrl: "https://example.com/new" }, as: :json
     assert_response :success
+    assert_equal device.reload.config_version, response.parsed_body.dig("data", "configVersion")
     patch "/api/devices/TEST-001/maintenance", params: { enabled: true, message: "Updating" }, as: :json
     assert_response :success
     post "/api/devices/heartbeat", params: { deviceId: "TEST-001", currentUrl: "https://example.com/stale" }, as: :json

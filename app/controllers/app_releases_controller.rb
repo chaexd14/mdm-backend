@@ -36,6 +36,7 @@ class AppReleasesController < ApplicationController
     DeviceUpdate.transaction do
       release.lock!
       raise ArgumentError, 'Only a published release can be assigned' unless release.state == 'published'
+      raise ArgumentError, 'This release belongs to a different Android package' unless release.package_name == ApkArtifact::PACKAGE
       devices = Device.where(device_id: ids).order(:id).lock.to_a
       raise ArgumentError, 'One or more device IDs do not exist' unless devices.length == ids.length
       devices.each do |device|
