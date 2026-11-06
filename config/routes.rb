@@ -1,5 +1,7 @@
 Rails.application.routes.draw do
-  get "/api/auth", to: "enrollments#auth"
+  get "/api/auth", to: "sessions#show"
+  post "/api/auth/login", to: "sessions#create"
+  delete "/api/auth/session", to: "sessions#destroy"
   get '/api/app-releases', to: 'app_releases#index'
   post '/api/app-releases', to: 'app_releases#create'
   patch '/api/app-releases/:id', to: 'app_releases#change'

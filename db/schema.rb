@@ -10,9 +10,31 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_06_040000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_06_150000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+
+  create_table "admin_accounts", force: :cascade do |t|
+    t.string "username", null: false
+    t.string "password_digest", null: false
+    t.boolean "active", default: true, null: false
+    t.integer "failed_login_attempts", default: 0, null: false
+    t.datetime "locked_until"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["username"], name: "index_admin_accounts_on_username", unique: true
+  end
+
+  create_table "admin_sessions", force: :cascade do |t|
+    t.bigint "admin_account_id", null: false
+    t.string "token_digest", null: false
+    t.datetime "expires_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["admin_account_id"], name: "index_admin_sessions_on_admin_account_id"
+    t.index ["expires_at"], name: "index_admin_sessions_on_expires_at"
+    t.index ["token_digest"], name: "index_admin_sessions_on_token_digest", unique: true
+  end
 
   create_table "app_releases", id: :string, force: :cascade do |t|
     t.string "package_name", null: false
@@ -130,6 +152,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_06_040000) do
     t.index ["device_update_id"], name: "index_update_attempts_on_device_update_id"
   end
 
+  add_foreign_key "admin_sessions", "admin_accounts"
   add_foreign_key "device_commands", "devices", on_delete: :cascade
   add_foreign_key "device_updates", "app_releases"
   add_foreign_key "device_updates", "devices"

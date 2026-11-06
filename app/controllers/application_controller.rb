@@ -1,5 +1,6 @@
 require "digest"
 class ApplicationController < ActionController::API
+  include ActionController::Cookies
   wrap_parameters false
   before_action :authenticate_api!
   after_action :audit_mutation
@@ -7,7 +8,7 @@ class ApplicationController < ActionController::API
   def audit_mutation
     return if request.get? || request.options?
     Rails.logger.info({ event: "mdm_mutation", requestId: request.request_id,
-      actor: @admin_authenticated ? "administrator" : "device", action: "#{controller_name}.#{action_name}",
+      actor: @admin_authenticated ? "administrator" : "device", adminUsername: @current_admin_account&.username, action: "#{controller_name}.#{action_name}",
       deviceId: params[:device_id] || params[:deviceId], commandId: params[:command_id],
       status: response.status }.to_json)
   end
@@ -15,7 +16,13 @@ class ApplicationController < ActionController::API
 
   def authenticate_api!
     return if request.options? || (controller_name == "enrollments" && action_name == "redeem")
-    return unless Rails.env.production? || ENV["MDM_AUTH_REQUIRED"] == "true"
+    if (session = browser_admin_session) && !device_only_action?
+      @admin_authenticated = true
+      @current_admin_account = session.admin_account
+      verify_dashboard_origin! unless request.get? || request.head?
+      return
+    end
+    return unless Rails.env.production? || ENV["MDM_AUTH_REQUIRED"] == "true" || AdminAccount.exists?
     token = request.authorization.to_s[/\ABearer (.+)\z/, 1].to_s
     admin = ENV["MDM_ADMIN_TOKEN"].to_s
     @admin_authenticated = admin.bytesize >= 32 && token.present? &&
@@ -30,6 +37,25 @@ class ApplicationController < ActionController::API
       end
     end
     render json: { success: false, error: "Authentication required" }, status: :unauthorized
+  end
+
+  def browser_admin_session
+    return @browser_admin_session if defined?(@browser_admin_session)
+    candidate = AdminSession.from_token(cookies[AdminSession::COOKIE])
+    @browser_admin_session = candidate if candidate&.admin_account&.active?
+  end
+
+  def session_cookie_options
+    mode = ENV.fetch('MDM_SESSION_SAME_SITE', 'lax').downcase
+    raise ArgumentError, 'Invalid session cookie SameSite setting' unless %w[lax strict none].include?(mode)
+    { httponly: true, secure: Rails.env.production? || request.ssl?, same_site: mode.to_sym, path: '/' }
+  end
+
+  def verify_dashboard_origin!
+    origins = ENV.fetch('FRONTEND_ORIGINS', 'http://localhost:3000,http://127.0.0.1:3000').split(',').map { |origin| origin.strip.delete_suffix('/') }
+    return true if (origins + [request.base_url]).include?(request.headers['Origin'])
+    render json: { success: false, error: 'Dashboard request origin is not allowed' }, status: :forbidden
+    false
   end
 
   def device_action?
