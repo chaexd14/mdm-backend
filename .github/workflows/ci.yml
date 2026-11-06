@@ -17,7 +17,7 @@ jobs:
       DB_PASSWORD: postgres
       DB_HOST: localhost
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: .ruby-version
