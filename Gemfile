@@ -7,7 +7,7 @@ gem "bcrypt", "~> 3.1"
 gem "tzinfo-data", platforms: %i[windows jruby]
 gem "dotenv-rails", groups: [:development, :test]
 group :development, :test do
-  gem "minitest", "~> 5.0"
+  gem "minitest", "~> 6.0"
   gem "brakeman", require: false
   gem "rubocop-rails-omakase", require: false
 end
