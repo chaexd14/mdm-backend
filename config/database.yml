@@ -1,0 +1,19 @@
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  sslmode: <%= ENV.fetch("DB_SSLMODE", "prefer") %>
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS", 16) %>
+  host: <%= ENV.fetch("DB_HOST", "localhost") %>
+  port: <%= ENV.fetch("DB_PORT", 5432) %>
+  username: <%= ENV.fetch("DB_USERNAME", "postgres") %>
+  password: <%= ENV["DB_PASSWORD"] %>
+development:
+  <<: *default
+  database: mdm_backend_development
+test:
+  <<: *default
+  database: mdm_backend_test
+production:
+  <<: *default
+  database: mdm_backend_production
+  url: <%= ENV["DATABASE_URL"] %>
